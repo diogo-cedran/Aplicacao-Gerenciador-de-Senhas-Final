@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/senha_model.dart';
 import '../services/api_service.dart';
+import 'dart:math';
 
 class FormularioScreen extends StatefulWidget {
   final SenhaModel? senha;
@@ -12,98 +13,138 @@ class FormularioScreen extends StatefulWidget {
 }
 
 class _FormularioScreenState extends State<FormularioScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _descricaoController = TextEditingController();
-  final _usuarioController = TextEditingController();
-  final _valorController = TextEditingController();
-  final ApiService apiService = ApiService();
+  final TextEditingController siteController = TextEditingController();
+  final TextEditingController loginController = TextEditingController();
+  final TextEditingController senhaController = TextEditingController();
+  final ApiService _apiService = ApiService();
+  int selectedLength = 8;
 
   @override
   void initState() {
     super.initState();
     if (widget.senha != null) {
-      _descricaoController.text = widget.senha!.descricao;
-      _usuarioController.text = widget.senha!.usuario;
-      _valorController.text = widget.senha!.valor;
+      siteController.text = widget.senha!.descricao;
+      loginController.text = widget.senha!.usuario;
+      senhaController.text = widget.senha!.valor;
     }
   }
 
-  Future<void> _salvarSenha() async {
-    if (_formKey.currentState!.validate()) {
-      final senha = SenhaModel(
-        id: widget.senha?.id ?? '',
-        descricao: _descricaoController.text,
-        usuario: _usuarioController.text,
-        valor: _valorController.text,
-      );
-
-      if (widget.senha == null) {
-        await apiService.addSenha(senha);
-      } else {
-        await apiService.updateSenha(senha);
-      }
-
-      Navigator.pop(context, true); 
-    }
+  String gerarSenhaAleatoria(int length) {
+    const String characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    final Random random = Random();
+    return List.generate(length, (index) => characters[random.nextInt(characters.length)]).join();
   }
 
-  @override
-  void dispose() {
-    _descricaoController.dispose();
-    _usuarioController.dispose();
-    _valorController.dispose();
-    super.dispose();
+  void _showGerarSenhaDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        int localLength = selectedLength;
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text("Gerar Senha"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text("Escolha o número de caracteres:"),
+                  DropdownButton<int>(
+                    value: localLength,
+                    items: List.generate(11, (index) => 6 + index)
+                        .map((value) => DropdownMenuItem(
+                              value: value,
+                              child: Text(value.toString()),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        localLength = value!;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  child: Text("Cancelar"),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                ElevatedButton(
+                  child: Text("Gerar"),
+                  onPressed: () {
+                    final senhaGerada = gerarSenhaAleatoria(localLength);
+                    setState(() {
+                      selectedLength = localLength;
+                    });
+                    senhaController.text = senhaGerada;
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.senha == null ? 'Adicionar Senha' : 'Editar Senha'),
+        title: Text(widget.senha == null ? "Nova Conta" : "Editar Conta"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _descricaoController,
-                decoration: const InputDecoration(labelText: 'Descrição'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe uma descrição';
-                  }
-                  return null;
-                },
+        child: Column(
+          children: [
+            TextField(
+              controller: siteController,
+              decoration: InputDecoration(
+                labelText: "Site/Aplicativo",
+                hintText: "Exemplo: www.site.com",
               ),
-              TextFormField(
-                controller: _usuarioController,
-                decoration: const InputDecoration(labelText: 'Usuário'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe um usuário';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _valorController,
-                decoration: const InputDecoration(labelText: 'Senha'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe uma senha';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _salvarSenha,
-                child: const Text('Salvar'),
-              ),
-            ],
-          ),
+            ),
+            TextField(
+              controller: loginController,
+              decoration: InputDecoration(labelText: "Login"),
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: senhaController,
+                    decoration: InputDecoration(labelText: "Senha"),
+                  ),
+                ),
+                SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: _showGerarSenhaDialog,
+                  child: Text("Gerar"),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              child: Text("Salvar"),
+              onPressed: () async {
+                final novaSenha = SenhaModel(
+                  id: widget.senha?.id ?? "", 
+                  descricao: siteController.text,
+                  usuario: loginController.text,
+                  valor: senhaController.text,
+                );
+                
+                if (widget.senha == null) {
+                  await _apiService.createSenha(novaSenha);
+                } else {
+                  await _apiService.updateSenha(novaSenha);
+                }
+
+                Navigator.pop(context);
+              },
+            ),
+          ],
         ),
       ),
     );

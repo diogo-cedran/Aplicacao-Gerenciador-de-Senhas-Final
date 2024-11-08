@@ -9,14 +9,8 @@
     {
       "id": "2",
       "descricao": "Google",
-      "usuario": "user",
-      "valor": "password"
-    },
-    {
-      "id": "3",
-      "descricao": "Instagram",
-      "usuario": "teste",
-      "valor": "123456"
+      "usuario": "users",
+      "valor": "INQPshyjJo"
     }
   ]
 }

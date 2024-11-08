@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
-import 'utils/routes.dart';
+import 'screens/lista_screen.dart';
+import 'screens/formulario_screen.dart';
 
 void main() {
-  runApp(GerenciadorSenhasApp());
+  runApp(GeradorDeSenhasApp());
 }
 
-class GerenciadorSenhasApp extends StatelessWidget {
+class GeradorDeSenhasApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -15,7 +16,11 @@ class GerenciadorSenhasApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       initialRoute: '/',
-      onGenerateRoute: Routes.generateRoute,
+      routes: {
+        '/': (context) => HomeScreen(),
+        '/minhasContas': (context) => ListaScreen(),
+        '/adicionarConta': (context) => FormularioScreen(),
+      },
     );
   }
 }
