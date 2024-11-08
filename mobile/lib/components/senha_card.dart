@@ -18,7 +18,13 @@ class SenhaCard extends StatelessWidget {
     return Card(
       child: ListTile(
         title: Text(senha.descricao),
-        subtitle: Text('Usuário: ${senha.usuario}'),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Usuário: ${senha.usuario}"),
+            Text("Senha: ${senha.valor}"), 
+          ],
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/senha_model.dart';
 import '../services/api_service.dart';
+import '../components/senha_card.dart';
 import 'formulario_screen.dart';
 
 class ListaScreen extends StatefulWidget {
@@ -9,16 +10,17 @@ class ListaScreen extends StatefulWidget {
 }
 
 class _ListaScreenState extends State<ListaScreen> {
-  final ApiService _apiService = ApiService();
+  late ApiService _apiService;
   List<SenhaModel> _senhas = [];
 
   @override
   void initState() {
     super.initState();
-    _carregarSenhas();
+    _apiService = ApiService();
+    _loadSenhas();
   }
 
-  void _carregarSenhas() async {
+  Future<void> _loadSenhas() async {
     final senhas = await _apiService.getSenhas();
     setState(() {
       _senhas = senhas;
@@ -27,16 +29,17 @@ class _ListaScreenState extends State<ListaScreen> {
 
   void _deleteSenha(String id) async {
     await _apiService.deleteSenha(id);
-    _carregarSenhas();
+    _loadSenhas();
   }
 
-  void _editSenha(SenhaModel senha) {
-    Navigator.push(
+  void _editSenha(SenhaModel senha) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => FormularioScreen(senha: senha),
       ),
-    ).then((_) => _carregarSenhas());
+    );
+    _loadSenhas();
   }
 
   @override
@@ -45,37 +48,26 @@ class _ListaScreenState extends State<ListaScreen> {
       appBar: AppBar(
         title: Text("Minhas Contas"),
       ),
-      body: ListView.builder(
-        itemCount: _senhas.length,
-        itemBuilder: (context, index) {
-          final senha = _senhas[index];
-          return ListTile(
-            title: Text(senha.descricao),
-            subtitle: Text("Usuário: ${senha.usuario}"),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.edit),
-                  onPressed: () => _editSenha(senha),
-                ),
-                IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () => _deleteSenha(senha.id),
-                ),
-              ],
+      body: _senhas.isEmpty
+          ? Center(child: Text("Nenhuma conta encontrada."))
+          : ListView.builder(
+              itemCount: _senhas.length,
+              itemBuilder: (context, index) {
+                final senha = _senhas[index];
+                return SenhaCard(
+                  senha: senha,
+                  onEdit: () => _editSenha(senha),
+                  onDelete: () => _deleteSenha(senha.id),
+                );
+              },
             ),
-          );
-        },
-      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          await Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => FormularioScreen(),
-            ),
-          ).then((_) => _carregarSenhas());
+            MaterialPageRoute(builder: (context) => FormularioScreen()),
+          );
+          _loadSenhas();
         },
         child: Icon(Icons.add),
       ),
