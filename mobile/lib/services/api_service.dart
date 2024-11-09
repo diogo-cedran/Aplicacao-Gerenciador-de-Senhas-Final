@@ -20,8 +20,6 @@ class ApiService {
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       final List<SenhaModel> senhasExistentes = data.map((json) => SenhaModel.fromJson(json)).toList();
-
-      // Gera o próximo id com base no maior id existente
       final int novoId = senhasExistentes.isNotEmpty
           ? senhasExistentes.map((s) => int.tryParse(s.id) ?? 0).reduce((a, b) => a > b ? a : b) + 1
           : 1;

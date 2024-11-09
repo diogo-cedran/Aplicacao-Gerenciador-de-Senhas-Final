@@ -2,15 +2,23 @@
   "senhas": [
     {
       "id": "1",
-      "descricao": "Email",
-      "usuario": "email@exemplo.com",
-      "valor": "senha123"
+      "descricao": "Facebook",
+      "usuario": "teste@exemplo.com",
+      "valor": "teste123"
     },
     {
       "id": "2",
-      "descricao": "Google",
-      "usuario": "users",
-      "valor": "INQPshyjJo"
+      "descricao": "Instagram",
+      "usuario": "username",
+      "valor": "password"
+    }
+  ],
+  "users": [
+    {
+      "id": "1",
+      "nome": "Teste",
+      "email": "email@exemplo.com",
+      "senha": "senha123"
     }
   ]
 }
